@@ -5,11 +5,12 @@ from telegram.ext import Filters, MessageHandler
 from handler import SolidityHandler
 
 updater = Updater(token='382950404:AAHai_mvYGVYQI_yc1FiXFCWlLqhdDmgnqs')
-e = SolidityHandler('abi', 'adddr')
+e = None # SolidityHandler('abi', 'adddr')
 us_to_add = {}
 add_to_us = {}
 add_pass = {}
-botz:telegram.Bot  = None
+
+botz = None
 
 def join(bot: telegram.Bot, update: telegram.Update):
     # print('ee')
@@ -21,7 +22,7 @@ def join(bot: telegram.Bot, update: telegram.Update):
                          text="Hello!!! Please send me password with command /pass")
 
 
-@e.handle("sendToTelegram")
+# @e.handle("sendToTelegram")
 def sentToTel(event):
     to = add_to_us[event['args']['adrs']]
     text = event['args']['sttr']
@@ -38,11 +39,13 @@ def sentToTel(event):
         botz.send_message(chat_id=to, text=text, reply_markup=reply_markup)
 
 def passcode(bot: telegram.Bot, update: telegram.Update):
+    print(update.message.chat.type)
     if update.message.chat.type == 'private':
         to_unlock = update.message.from_user.id
-        add_pass[to_unlock] = update.message.text.split('/pass ')[1]
-        bot.send_message(
-            "Thanks you. Dont worrying you passcode will be used ony for contract interaction, we dont steal your passcode or ethers")
+        add_pass[us_to_add[to_unlock]] = update.message.text.split('/pass ')[1] 
+        print('hello')
+        bot.send_message( chat_id = to_unlock, text = "Thanks you. Dont worrying you passcode will be used ony for contract interaction, we dont steal your passcode or ethers")
+            
 
 
 def added(bot: telegram.Bot, update: telegram.Update):
@@ -65,7 +68,7 @@ def buttonC(bot, update):
         e.deployed_contract.transact(transaction={'from': addr}).confirmKTD()
 
 
-e.start("sendToTelegram")
+# e.start("sendToTelegram")
 updater.dispatcher.add_handler(CommandHandler("join", join))
 updater.dispatcher.add_handler(CommandHandler("pass", passcode))
 updater.dispatcher.add_handler(CallbackQueryHandler(buttonC))
