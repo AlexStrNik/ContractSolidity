@@ -201,3 +201,5 @@ contract Invent {
         resource -= res;
     }
 }
+ 
+
