@@ -1,13 +1,18 @@
 pragma solidity ^0.4.0;
 
-contract qqq {
+contract Invent {
     
-    address project_manager;//руководитель проекта
-    address main_constructor;//главный конструктор
-    address project_head;//начальник производства
-    address tecknical_director;//техническиий директор
-    address OMTC_head;//начальник ОМТС
-    address comercial_director;//комерческий директор
+    struct member{
+        address adrs;
+        uint tockCount;
+    }
+    
+    member project_manager;//руководитель проекта
+    member main_constructor;//главный конструктор
+    member project_head;//начальник производства
+    member tecknical_director;//техническиий директор
+    member OMTC_head;//начальник ОМТС
+    member comercial_director;//комерческий директор
     
     uint status;
     string tech_order;
@@ -19,24 +24,24 @@ contract qqq {
     uint prise;
     uint resource;
     
-    event sendToTelegram(address adrs, string sttr);
+    event sendToTelegram(address adrs, string sttr, string buttext);
     event order(address toDir, address fromByu);
     event PSItest(string sttr);
     
-    function qqq() payable {
+    function Invent() payable {
         confirming_points = 0;
         confirming_KDT = false;
-        project_manager = msg.sender;//1
+        project_manager.adrs = msg.sender;//1
         status = 1;
     }
     
     modifier mainRoles() {
-        require(msg.sender == project_manager ||
-                msg.sender == main_constructor ||
-                msg.sender == project_head ||
-                msg.sender == tecknical_director ||
-                msg.sender == OMTC_head ||
-                msg.sender == comercial_director);
+        require(msg.sender == project_manager.adrs ||
+                msg.sender == main_constructor.adrs ||
+                msg.sender == project_head.adrs ||
+                msg.sender == tecknical_director.adrs ||
+                msg.sender == OMTC_head.adrs ||
+                msg.sender == comercial_director.adrs);
         _;
     }
     
@@ -61,19 +66,20 @@ contract qqq {
     
     function setTechOrder(string str){//to start
         tech_order = str;
-        sendToTelegram(main_constructor,tech_order);//3
+        sendToTelegram(main_constructor.adrs,tech_order,'OrganizeWorking');//3
     }
     
     function organizeDev(string kdt){//by main_ko
-        if (main_constructor != msg.sender) throw;
+        if (main_constructor.adrs != msg.sender) throw;
         KDT = kdt;//4
+        main_constructor.tockCount++;
         confirmingKDT();
     }
     
     function confirmingKDT() internal {
         status = 2;
-        sendToTelegram(tecknical_director,KDT);//5
-        sendToTelegram(project_manager,KDT);
+        sendToTelegram(tecknical_director.adrs,KDT,"Confirm");//5
+        sendToTelegram(project_manager.adrs,KDT,"Confirm");
     }
     
     function confirmKDT() mainRoles{
@@ -81,15 +87,16 @@ contract qqq {
             
         if (confirming_points >= 2){ 
             confirming_KDT = true;
-            sendToTelegram(project_head,KDT);//6
+            sendToTelegram(project_head.adrs,KDT,"createTrialProduct");//6
         }
     }
     
     Product TrialProd;
     function CreateTrialProduct(string data) {
-        if (msg.sender != project_head) throw;
+        if (msg.sender != project_head.adrs) throw;
         TrialProd.KDT = KDT;
         TrialProd.data = data;
+        project_head.tockCount++;
         status = 5;
         PSI(TrialProd);
     }
@@ -110,14 +117,14 @@ contract qqq {
     }
     
     function TimeIsOut() {
-        sendToTelegram(project_manager,TrialProd.data);
-        sendToTelegram(OMTC_head,TrialProd.data);
+        sendToTelegram(project_manager.adrs,TrialProd.data,"acceptTrialProd");
+        sendToTelegram(OMTC_head.adrs,TrialProd.data,"");
         status = 9;
     }
     
     function ReworkKDT(){
-        if (msg.sender != project_manager) throw;
-        sendToTelegram(main_constructor,tech_order);
+        if (msg.sender != project_manager.adrs) throw;
+        sendToTelegram(main_constructor.adrs,tech_order,"OrganizeWorking");
         
     }
     
@@ -125,8 +132,8 @@ contract qqq {
     uint8 exportersCount;
     
     function addExporters(address adrs,uint res) {//1 res = 1 wei
-        if (msg.sender != OMTC_head) throw;
-        tra
+        if (msg.sender != OMTC_head.adrs) throw;
+        if (res>0) OMTC_head.tockCount++;
         exporters[exportersCount] = adrs;
         resource += res;
         exportersCount++;
@@ -137,25 +144,27 @@ contract qqq {
     }
     
     function sertification(uint _prise){
-        if (msg.sender != project_manager) throw;
+        if (msg.sender != project_manager.adrs) throw;
         prise = _prise;
         confirmation();
     }
     
-    function confirmation
- () internal{
-        sendToTelegram(comercial_director,"sertificationEnded");
+    bool serialProduction;
+    function confirmation() internal{
+        serialProduction = true;
         status = 10;
     }
     
     
     function newOrder() payable {
-        order(comercial_director, msg.sender);
+        if(!serialProduction) throw;
+        comercial_director.tockCount++;
+        order(comercial_director.adrs, msg.sender);
+        project_head.tockCount++;
+        uint resPrise = 1000;
+        removeRes(resPrise);
     }
     function removeRes(uint res) {
         resource -= res;
     }
-    
-    
-    
 }
